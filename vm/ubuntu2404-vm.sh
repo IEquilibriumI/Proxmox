@@ -136,8 +136,8 @@ function default_settings() {
   DISK_CACHE=""
   HN="ubuntu"
   CPU_TYPE=""
-  CORE_COUNT="2"
-  RAM_SIZE="2048"
+  CORE_COUNT="6"
+  RAM_SIZE="12288"
   BRG="vmbr0"
   MAC="$GEN_MAC"
   VLAN=""
@@ -235,9 +235,9 @@ function advanced_settings() {
     exit-script
   fi
 
-  if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores" 8 58 2 --title "CORE COUNT" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+  if CORE_COUNT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate CPU Cores" 8 58 6 --title "CORE COUNT" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $CORE_COUNT ]; then
-      CORE_COUNT="2"
+      CORE_COUNT="6"
       echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
     else
       echo -e "${DGN}Allocated Cores: ${BGN}$CORE_COUNT${CL}"
@@ -246,9 +246,9 @@ function advanced_settings() {
     exit-script
   fi
 
-  if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 2048 --title "RAM" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+  if RAM_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate RAM in MiB" 8 58 12288 --title "RAM" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
     if [ -z $RAM_SIZE ]; then
-      RAM_SIZE="2048"
+      RAM_SIZE="12288"
       echo -e "${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
     else
       echo -e "${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
@@ -403,11 +403,11 @@ done
 msg_info "Creating a Ubuntu 24.04 VM"
 qm create $VMID -agent 1${MACHINE} -tablet 0 -localtime 1 -bios ovmf${CPU_TYPE} -cores $CORE_COUNT -memory $RAM_SIZE \
   -name $HN -tags proxmox-helper-scripts -net0 virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
-pvesm alloc $STORAGE $VMID $DISK0 4M 1>&/dev/null
+pvesm alloc $STORAGE $VMID $DISK0 100G 1>&/dev/null
 qm importdisk $VMID ${FILE} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
   -efidisk0 ${DISK0_REF}${FORMAT} \
-  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=2G \
+  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=100G \
   -ide2 ${STORAGE}:cloudinit \
   -boot order=scsi0 \
   -serial0 socket \
